@@ -4,6 +4,8 @@ using System.Text;
 using System.IO;
 using System.Collections;
 using ICSharpCode.SharpZipLib.Zip;
+using Org.BouncyCastle.Utilities.IO;
+using ICSharpCode.SharpZipLib.Core;
 
 namespace NPOI.OpenXml4Net.Util
 {
@@ -125,32 +127,38 @@ namespace NPOI.OpenXml4Net.Util
             {
 
                 // Grab the de-compressed contents for later
-                MemoryStream baos = new MemoryStream();
-
-                long entrySize = entry.Size;
-
-                if (entrySize != -1)
+                MemoryStream baos=null;
+                try
                 {
-                    if (entrySize >= Int32.MaxValue)
+                    long entrySize = entry.Size;
+
+                    if(entrySize != -1)
                     {
-                        throw new IOException("ZIP entry size is too large");
+                        if(entrySize >= Int32.MaxValue)
+                        {
+                            throw new IOException("ZIP entry size is too large");
+                        }
+
+                        baos = new MemoryStream((int) entrySize);
+                    }
+                    else
+                    {
+                        baos = new MemoryStream();
                     }
 
-                    baos = new MemoryStream((int)entrySize);
+                    byte[] buffer = new byte[4096];
+                    int read = 0;
+                    while((read = inp.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        baos.Write(buffer, 0, read);
+                    }
+                    data = baos.ToArray();
                 }
-                else
+                finally
                 {
-                    baos = new MemoryStream();
+                    if(baos!=null)
+                        baos.Close();
                 }
-
-                byte[] buffer = new byte[4096];
-                int read = 0;
-                while ((read = inp.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    baos.Write(buffer, 0, read);
-                }
-
-                data = baos.ToArray();
             }
 
             public Stream GetInputStream()

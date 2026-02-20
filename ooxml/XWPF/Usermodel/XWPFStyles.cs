@@ -72,7 +72,7 @@ namespace NPOI.XWPF.UserModel
         internal override void OnDocumentRead()
         {
             StylesDocument stylesDoc;
-            Stream is1 = GetPackagePart().GetInputStream();
+            using var is1 = GetPackagePart().GetInputStream();
             try
             {
                 XmlDocument doc = ConvertStreamToXml(is1);

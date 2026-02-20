@@ -70,19 +70,10 @@ namespace NPOI.XSSF.EventUserModel
         /// <exception cref="IOException">when there's a problem with the workbook part's stream</exception>
         public String GetAbsPathMetadata()
         {
-
-            Stream is1 = null;
-            try
-            {
-                is1 = workbookPart.GetInputStream();
-                PathExtractor p = new PathExtractor(workbookPart.GetInputStream());
-                p.Parse();
-                return p.GetPath();
-            }
-            finally
-            {
-                IOUtils.CloseQuietly(is1);
-            }
+            using var is1 = workbookPart.GetInputStream();
+            PathExtractor p = new PathExtractor(is1);
+            p.Parse();
+            return p.GetPath();
         }
 
         /// <summary>

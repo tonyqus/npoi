@@ -105,7 +105,8 @@ namespace NPOI.XWPF.UserModel
             {
                 try
                 {
-                    return IOUtils.ToByteArray(GetPackagePart().GetInputStream());
+                    using var inputStream = GetPackagePart().GetInputStream();
+                    return IOUtils.ToByteArray(inputStream);
                 }
                 catch (IOException e)
                 {

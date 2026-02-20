@@ -55,8 +55,8 @@ namespace NPOI.Util
             settings.IgnoreProcessingInstructions = true;
             try
             {
-                XmlReader xr = XmlReader.Create(stream, settings);
-                
+                using XmlReader xr = XmlReader.Create(stream, settings);
+
                 XmlDocument xmlDoc = new XmlDocument();
                 xmlDoc.XmlResolver = null;
                 xmlDoc.PreserveWhitespace = true;
@@ -64,7 +64,7 @@ namespace NPOI.Util
 
                 return xmlDoc;
             }
-            catch (XmlException)
+            catch(XmlException)
             {
                 //try to load using xml string, see TestExternalEntities.TestFile
                 stream.Position = 0;
@@ -73,9 +73,14 @@ namespace NPOI.Util
                     XmlDocument xmlDoc = new XmlDocument();
                     xmlDoc.XmlResolver = null;
                     xmlDoc.PreserveWhitespace = true;
-                    xmlDoc.LoadXml(sr.ReadToEnd());
+                    xmlDoc.Load(stream);
                     return xmlDoc;
                 }
+            }
+            finally
+            {
+                if(stream!=null)
+                    stream.Close();
             }
         }
 

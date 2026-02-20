@@ -1309,13 +1309,13 @@ using Cysharp.Text;
                 prstGeom.prst = (ST_ShapeType.rect);
                 prstGeom.AddNewAvLst();
 
-                using (var ms = RecyclableMemory.GetStream())
+                using(var ms = RecyclableMemory.GetStream())
                 {
-                    StreamWriter sw = new StreamWriter(ms);
+                    using StreamWriter sw = new StreamWriter(ms);
                     pic.Write(sw, "pic:pic");
                     sw.Flush();
                     ms.Position = 0;
-                    var sr = new StreamReader(ms);
+                    using var sr = new StreamReader(ms);
                     var picXml = sr.ReadToEnd();
                     inline.graphic.graphicData.AddPicElement(picXml);
                 }

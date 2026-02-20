@@ -51,7 +51,7 @@ namespace NPOI.OpenXml4Net.OPC.Internal.Marshallers
                 zos.PutNextEntry(partEntry);
 
                 // Saving data in the ZIP file
-                Stream ins = part.GetInputStream();
+                using Stream ins = part.GetInputStream();
                 byte[] buff = new byte[ZipHelper.READ_WRITE_FILE_BUFFER_SIZE];
                 int totalRead = 0;
                 while (true)
