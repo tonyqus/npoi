@@ -28,6 +28,7 @@ namespace NPOI.SS.Extractor
     using System.Text;
     using System.Collections;
     using NPOI.XSSF.UserModel;
+    using ICSharpCode.SharpZipLib.Core;
 
     /// <summary>
     /// This extractor class tries to identify various embedded documents within Excel files
@@ -233,10 +234,9 @@ namespace NPOI.SS.Extractor
 
             public override EmbeddedData Extract(DirectoryNode dn)
             {
-                MemoryStream bos = new MemoryStream();
-                DocumentInputStream is1 = dn.CreateDocumentInputStream("CONTENTS");
-                IOUtils.Copy(is1, bos);
-                is1.Close();
+                using var bos = new MemoryStream();
+                using var inputStream = dn.CreateDocumentInputStream("CONTENTS");
+                StreamUtils.Copy(inputStream, bos, new byte[2048]);
                 return new EmbeddedData(dn.Name + ".pdf", bos.ToArray(), CONTENT_TYPE_PDF);
             }
             public override bool CanExtract(IPicture source)

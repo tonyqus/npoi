@@ -38,7 +38,7 @@ namespace NPOI
         public static String PACK_OBJECT_REL_TYPE = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/package";
 
         /** The OPC Package */
-        private OPCPackage pkg;
+        protected OPCPackage pkg;
 
         /**
          * The properties of the OPC namespace, opened as needed

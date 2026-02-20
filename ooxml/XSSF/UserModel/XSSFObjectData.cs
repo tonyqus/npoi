@@ -17,6 +17,7 @@
 
 namespace NPOI.XSSF.UserModel
 {
+    using ICSharpCode.SharpZipLib.Core;
     using NPOI;
     using NPOI.OpenXml4Net.OPC;
     using NPOI.OpenXmlFormats.Dml;
@@ -127,10 +128,9 @@ namespace NPOI.XSSF.UserModel
         {
             get
             {
-                Stream is1 = GetObjectPart().GetInputStream();
-                MemoryStream bos = new MemoryStream();
-                IOUtils.Copy(is1, bos);
-                is1.Close();
+                using Stream inputStream = GetObjectPart().GetInputStream();
+                using var bos = new MemoryStream();
+                StreamUtils.Copy(inputStream, bos, new byte[1024]);
                 return bos.ToArray();
             }
         }

@@ -25,6 +25,7 @@ using NPOI.POIFS.Crypt;
 using NPOI.POIFS.FileSystem;
 using NPOI.Util;
 using NPOI.XSSF.UserModel;
+using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Security;
 
 namespace NPOI.SS.UserModel
@@ -85,7 +86,7 @@ namespace NPOI.SS.UserModel
             // Encrypted OOXML files go inside OLE2 containers, is this one?
             if (root.HasEntry(Decryptor.DEFAULT_POIFS_ENTRY))
             {
-                InputStream stream = DocumentFactoryHelper.GetDecryptedStream(fs, password);
+                using var stream = DocumentFactoryHelper.GetDecryptedStream(fs, password);
 
                 OPCPackage pkg = OPCPackage.Open(stream);
                 return Create(pkg);
@@ -200,9 +201,9 @@ namespace NPOI.SS.UserModel
             FileMagic fm = FileMagicContainer.ValueOf(inputStream);
             try
             {
-                if (fm == FileMagic.OLE2)
+                if(fm == FileMagic.OLE2)
                 {
-                    if (DocumentFactoryHelper.GetPasswordProtected(inputStream) == DocumentFactoryHelper.OfficeProtectType.ProtectedOOXML)
+                    if(DocumentFactoryHelper.GetPasswordProtected(inputStream) == DocumentFactoryHelper.OfficeProtectType.ProtectedOOXML)
                     {
                         inputStream.Position = 0;
                         POIFSFileSystem fs = new POIFSFileSystem(inputStream);
@@ -221,14 +222,14 @@ namespace NPOI.SS.UserModel
                     }
                     finally
                     {
-                        // do not close NPOIFSFileSystem as Close dispose the _data source and fails to read document summary information
-                        //if(nfs != null)
-                        //    nfs.Close();
+                        // ensure that the file-handle is closed again
+                        if(nfs != null)
+                            nfs.Close();
                     }
                 }
 
                 inputStream.Position = 0;
-                if (fm == FileMagic.OOXML)
+                if(fm == FileMagic.OOXML)
                 {
                     inputStream.Position = 0;
                     OPCPackage pkg = OPCPackage.Open(inputStream, readOnly);
@@ -238,18 +239,19 @@ namespace NPOI.SS.UserModel
                     }
                     catch
                     {
-                        // ensure that file handles are closed (use revert() to not re-write the file) 
-                        pkg.Revert();
-                        //pkg.close();
-
                         // rethrow exception
                         throw;
+                    }
+                    finally
+                    {
+                        // ensure that file handles are closed (use revert() to not re-write the file) 
+                        pkg.Revert();
                     }
                 }
             }
             finally
             {
-                if (inputStream != null)
+                if(inputStream != null)
                     inputStream.Dispose();
             }
 

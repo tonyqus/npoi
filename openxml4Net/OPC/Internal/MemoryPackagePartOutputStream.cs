@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using Microsoft.IO;
 
 namespace NPOI.OpenXml4Net.OPC.Internal
 {
@@ -14,10 +15,7 @@ namespace NPOI.OpenXml4Net.OPC.Internal
         public MemoryPackagePartOutputStream(MemoryPackagePart part)
         {
             this._part = part;
-            //if (this._part.data == null)
-            {
-                this._part.data = new MemoryStream();
-            }
+            this._part.data = new MemoryStream();
             _buff = this._part.data;
         }
 

@@ -68,7 +68,7 @@ public class ZipPackagePart : PackagePart {
     public ZipEntry ZipArchive
     {
         get{
-        return zipEntry;
+            return zipEntry;
         }
     }
 

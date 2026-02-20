@@ -115,7 +115,8 @@ namespace NPOI.XSSF.Model
         internal StylesTable(PackagePart part)
             : base(part)
         {
-            XmlDocument xmldoc = ConvertStreamToXml(part.GetInputStream());
+            using var inputStream = part.GetInputStream();
+            XmlDocument xmldoc = ConvertStreamToXml(inputStream);
             ReadFrom(xmldoc);
         }
 

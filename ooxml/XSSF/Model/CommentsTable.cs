@@ -50,7 +50,8 @@ namespace NPOI.XSSF.Model
         internal CommentsTable(PackagePart part)
             : base(part)
         {
-            ReadFrom(part.GetInputStream());
+            using var inputStream = part.GetInputStream();
+            ReadFrom(inputStream);
         }
 
         [Obsolete("deprecated in POI 3.14, scheduled for removal in POI 3.16")]

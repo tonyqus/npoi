@@ -1280,7 +1280,8 @@ namespace NPOI.XSSF.UserModel
         {
             try
             {
-                Read(GetPackagePart().GetInputStream());
+                using var inputstream = GetPackagePart().GetInputStream();
+                Read(inputstream);
             }
             catch(IOException e)
             {

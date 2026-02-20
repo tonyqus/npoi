@@ -568,9 +568,8 @@ namespace NPOI
             if (extRel.Size == 1)
             {
                 extPart = pkg.GetPart(extRel.GetRelationship(0));
-                ExtendedPropertiesDocument props = ExtendedPropertiesDocument.Parse(
-                     extPart.GetInputStream()
-                );
+                using var extPartInputStream= extPart.GetInputStream();
+                ExtendedPropertiesDocument props = ExtendedPropertiesDocument.Parse(extPartInputStream);
                 ext = new ExtendedProperties(props);
             }
             else
@@ -585,9 +584,9 @@ namespace NPOI
             if (custRel.Size == 1)
             {
                 custPart = pkg.GetPart(custRel.GetRelationship(0));
-                CustomPropertiesDocument props = CustomPropertiesDocument.Parse(
-                        custPart.GetInputStream()
-                );
+
+                using var customPartInputStream = custPart.GetInputStream();
+                CustomPropertiesDocument props = CustomPropertiesDocument.Parse(customPartInputStream);
                 cust = new CustomProperties(props);
             }
             else

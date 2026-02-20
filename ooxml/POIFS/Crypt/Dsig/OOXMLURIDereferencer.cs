@@ -84,22 +84,24 @@ namespace NPOI.POIFS.Crypt.Dsig
             Stream dataStream;
             try
             {
-                dataStream = part.GetInputStream();
-
-                // workaround for office 2007 pretty-printed .rels files
-                if (part.PartName.ToString().EndsWith(".rels"))
+                using(dataStream = part.GetInputStream())
                 {
-                    // although xmlsec has an option to ignore line breaks, currently this
-                    // only affects .rels files, so we only modify these
-                    // http://stackoverflow.com/questions/4728300
-                    MemoryStream bos = new MemoryStream();
-                    //for (int ch; (ch = dataStream.Read()) != -1;)
-                    //{
-                    //    if (ch == 10 || ch == 13) continue;
-                    //    bos.Write(ch);
-                    //}
-                    dataStream = new MemoryStream(bos.ToArray());
-                    throw new NotImplementedException();
+
+                    // workaround for office 2007 pretty-printed .rels files
+                    if(part.PartName.ToString().EndsWith(".rels"))
+                    {
+                        // although xmlsec has an option to ignore line breaks, currently this
+                        // only affects .rels files, so we only modify these
+                        // http://stackoverflow.com/questions/4728300
+                        //MemoryStream bos = new MemoryStream();
+                        //for (int ch; (ch = dataStream.Read()) != -1;)
+                        //{
+                        //    if (ch == 10 || ch == 13) continue;
+                        //    bos.Write(ch);
+                        //}
+                        //dataStream = new MemoryStream(bos.ToArray());
+                        throw new NotImplementedException();
+                    }
                 }
             }
             catch (IOException)

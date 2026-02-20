@@ -294,7 +294,15 @@ namespace NPOI
         public static XmlDocument ConvertStreamToXml(Stream xmlStream)
         {
             XmlDocument xmlDoc = new XmlDocument();
-            NPOI.OpenXml4Net.Util.XmlHelper.LoadXmlSafe(xmlDoc, xmlStream);
+            try
+            {
+                NPOI.OpenXml4Net.Util.XmlHelper.LoadXmlSafe(xmlDoc, xmlStream);
+            }
+            finally
+            {
+                if(xmlStream!=null)
+                    xmlStream.Close();
+            }
             return xmlDoc;
         }
 

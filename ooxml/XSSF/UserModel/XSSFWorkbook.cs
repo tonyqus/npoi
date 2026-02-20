@@ -38,6 +38,7 @@ using NPOI.SS;
 using System.Globalization;
 using System.Linq;
 using NPOI.POIFS.FileSystem;
+using ICSharpCode.SharpZipLib.Core;
 
 namespace NPOI.XSSF.UserModel
 {
@@ -404,7 +405,7 @@ namespace NPOI.XSSF.UserModel
          * Not normally to be called externally, but possibly to be overridden to avoid
          * the DOM based parse of large sheets (see examples).
          */
-        private void ParseSheet(Dictionary<String, XSSFSheet> shIdMap, CT_Sheet ctSheet)
+        protected virtual void ParseSheet(Dictionary<String, XSSFSheet> shIdMap, CT_Sheet ctSheet)
         {
             XSSFSheet sh = null;
             if (shIdMap.TryGetValue(ctSheet.id, out XSSFSheet value))
@@ -542,9 +543,8 @@ namespace NPOI.XSSF.UserModel
         {
             int imageNumber = GetAllPictures().Count + 1;
             XSSFPictureData img = (XSSFPictureData)CreateRelationship(XSSFPictureData.RELATIONS[format], XSSFFactory.GetInstance(), imageNumber, true).DocumentPart;
-            Stream out1 = img.GetPackagePart().GetOutputStream();
-            IOUtils.Copy(picStream, out1);
-            out1.Close();
+            using Stream outStream = img.GetPackagePart().GetOutputStream();
+            StreamUtils.Copy(picStream, outStream, new byte[2048]);
             pictures.Add(img);
             return imageNumber - 1;
         }
@@ -2552,7 +2552,7 @@ namespace NPOI.XSSF.UserModel
             }
             try
             {
-                IOUtils.Copy(vbaProjectStream, outputStream);
+                StreamUtils.Copy(vbaProjectStream, outputStream, new byte[1024]);
             }
             finally
             {

@@ -64,8 +64,8 @@ namespace NPOI.XSSF.Binary
             if(parts.Count > 0)
             {
                 PackagePart sstPart = parts[0];
-
-                readFrom(sstPart.GetInputStream());
+                using var InputStream= sstPart.GetInputStream();
+                readFrom(InputStream);
             }
         }
 

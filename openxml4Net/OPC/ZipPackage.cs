@@ -200,8 +200,8 @@ namespace NPOI.OpenXml4Net.OPC
                 {
                     try
                     {
-                        this.contentTypeManager = new ZipContentTypeManager(
-                                ZipArchive.GetInputStream(entry), this);
+                        using var inputStream= ZipArchive.GetInputStream(entry);
+                        this.contentTypeManager = new ZipContentTypeManager(inputStream, this);
                     }
                     catch (IOException e)
                     {
