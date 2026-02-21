@@ -25,12 +25,12 @@ namespace NPOI.OpenXml4Net.OPC
         /**
          * Package relationships ordered by ID.
          */
-        private readonly SortedList<String, PackageRelationship> relationshipsByID;
+        private readonly Dictionary<String, PackageRelationship> relationshipsByID;
 
         /**
          * A lookup of internal relationships to avoid
          */
-        private readonly SortedList<String, PackageRelationship> internalRelationshipsByTargetName;
+        private readonly Dictionary<String, PackageRelationship> internalRelationshipsByTargetName;
 
         /**
          * This relationshipPart.
@@ -61,8 +61,8 @@ namespace NPOI.OpenXml4Net.OPC
          */
         public PackageRelationshipCollection()
         {
-            relationshipsByID = new SortedList<String, PackageRelationship>();
-            internalRelationshipsByTargetName = new SortedList<string, PackageRelationship>();
+            relationshipsByID = new Dictionary<String, PackageRelationship>();
+            internalRelationshipsByTargetName = new Dictionary<string, PackageRelationship>();
         }
 
         private sealed class DuplicateComparer : IComparer<string>
@@ -240,9 +240,9 @@ namespace NPOI.OpenXml4Net.OPC
                     sourcePart, targetUri, targetMode, relationshipType, id);
             relationshipsByID[rel.Id] = rel;
             if (targetMode == TargetMode.Internal
-                && !internalRelationshipsByTargetName.ContainsKey(targetUri.OriginalString))
+                && !internalRelationshipsByTargetName.ContainsKey(rel.TargetUri.OriginalString))
             {
-                internalRelationshipsByTargetName.Add(targetUri.OriginalString, rel);
+                internalRelationshipsByTargetName.Add(rel.TargetUri.OriginalString, rel);
             }
             return rel;
         }
@@ -262,8 +262,8 @@ namespace NPOI.OpenXml4Net.OPC
             PackageRelationship rel = relationshipsByID[id];
             if (rel != null)
             {
-                relationshipsByID.Remove(rel.Id);                    
-                internalRelationshipsByTargetName.RemoveAt(internalRelationshipsByTargetName.IndexOfValue(rel));
+                relationshipsByID.Remove(rel.Id);
+                internalRelationshipsByTargetName.Remove(rel.TargetUri.OriginalString);
             }
         }
 
@@ -278,7 +278,7 @@ namespace NPOI.OpenXml4Net.OPC
             if (rel == null)
                 throw new ArgumentException("rel");
 
-            relationshipsByID.Values.Remove(rel);
+            relationshipsByID.Remove(rel.Id);
         }
 
         /**

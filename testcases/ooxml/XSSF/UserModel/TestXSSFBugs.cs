@@ -1162,11 +1162,11 @@ namespace TestCases.XSSF.UserModel
 
             ClassicAssert.AreEqual(
                   XSSFRelation.PRINTER_SETTINGS.ContentType,
-                  s2.GetRelations()[0].GetPackagePart().ContentType
+                  s2.GetRelations()[1].GetPackagePart().ContentType
             );
             ClassicAssert.AreEqual(
                   XSSFRelation.TABLE.ContentType,
-                  s2.GetRelations()[1].GetPackagePart().ContentType
+                  s2.GetRelations()[0].GetPackagePart().ContentType
             );
             ClassicAssert.AreEqual(
                   XSSFRelation.TABLE.ContentType,
@@ -1174,11 +1174,11 @@ namespace TestCases.XSSF.UserModel
             );
             ClassicAssert.AreEqual(
                   XSSFRelation.TABLE.ContentType,
-                  s3.GetRelations()[(0)].GetPackagePart().ContentType
+                  s3.GetRelations()[0].GetPackagePart().ContentType
             );
             ClassicAssert.AreEqual(
                   "/xl/tables/table3.xml",
-                  s3.GetRelations()[(0)].GetPackagePart().PartName.ToString()
+                  s3.GetRelations()[0].GetPackagePart().PartName.ToString()
             );
 
             wb3.Close();

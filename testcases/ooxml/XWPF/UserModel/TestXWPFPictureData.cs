@@ -37,7 +37,7 @@ namespace TestCases.XWPF.UserModel
             IList<XWPFPictureData> pictures = sampleDoc.AllPictures;
 
             ClassicAssert.AreEqual(5, pictures.Count);
-            String[] ext = { "wmf", "png", "emf", "emf", "jpeg" };
+            String[] ext = { "jpeg","emf", "emf", "png", "wmf" };
             for (int i = 0; i < pictures.Count; i++)
             {
                 ClassicAssert.AreEqual(ext[i], pictures[(i)].SuggestFileExtension());
