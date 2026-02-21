@@ -1485,9 +1485,8 @@ namespace NPOI.XSSF.UserModel
         protected internal override void Commit()
         {
             PackagePart part = GetPackagePart();
-            Stream out1 = part.GetOutputStream();
+            using Stream out1 = part.GetOutputStream();
             Write(out1);
-            out1.Close();
         }
 
         protected virtual OpenXmlFormats.Spreadsheet.CT_Drawing GetCTDrawing()
