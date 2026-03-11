@@ -99,7 +99,7 @@ namespace NPOI.SS.Format
             }
             // A condition specification
             String condition = "([<>=]=?|!=|<>)    # The operator\n" +
-                    "  \\s*([0-9]+(?:\\.[0-9]*)?)\\s*  # The constant to test against\n";
+                    "  \\s*([0-9]+(?:\\.[0-9]*)?)|(\\.[0-9]*))\\s*  # The constant to test against\n";
 
             // A currency symbol / string, in a specific locale
             String currency = "(\\[\\$.{0,3}-[0-9a-f]{3}\\])";

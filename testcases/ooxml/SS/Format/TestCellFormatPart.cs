@@ -16,6 +16,7 @@
 ==================================================================== */
 namespace TestCases.SS.Format
 {
+    using NPOI.HSSF.UserModel;
     using NPOI.SS.Format;
     using NPOI.SS.UserModel;
     using NPOI.XSSF;
@@ -149,6 +150,26 @@ namespace TestCases.SS.Format
                     sb.Append(part);
             }
             return double.Parse(sb.ToString(), CultureInfo.InvariantCulture);
+        }
+
+        [Test]
+        public void TestDecimalFormat()
+        {
+            // Create a workbook, row and cell to test with
+            using(var wb = new HSSFWorkbook())
+            {
+                var sheet = wb.CreateSheet();
+                var row = sheet.CreateRow(0);
+                var cell = row.CreateCell(0);
+
+                CellFormat cf = CellFormat.GetInstance("[<=.01]0.00%;#,##0");
+
+                cell.SetCellValue(1);
+                ClassicAssert.AreEqual("1", cf.Apply(cell).Text);
+
+                cell.SetCellValue(.001);
+                ClassicAssert.AreEqual("0.10%", cf.Apply(cell).Text);
+            }
         }
     }
 }

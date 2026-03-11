@@ -201,7 +201,7 @@ namespace NPOI.SS.Format
             switch (formatPartCount)
             {
                 case 1:
-                    posNumFmt = parts[(0)];
+                    posNumFmt = parts[0];
                     negNumFmt = null;
                     zeroNumFmt = null;
                     textFmt = defaultTextFormat;
