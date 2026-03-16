@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Security;
 
+[assembly: InternalsVisibleTo("NPOI.Benchmarks")]
 #if NETSTANDARD2_1 || NET6_0_OR_GREATER || NETSTANDARD2_0 || NET40
 [assembly: AllowPartiallyTrustedCallers]
 #endif

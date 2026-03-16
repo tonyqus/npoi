@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace NPOI.XSSF.UserModel
 {
@@ -325,31 +326,69 @@ namespace NPOI.XSSF.UserModel
         const string presetTableStylesResourceName = "NPOI.Resources.presetTableStyles.xml";
 
         private static Dictionary<XSSFBuiltinTableStyleEnum, ITableStyle> styleMap = new Dictionary<XSSFBuiltinTableStyleEnum, ITableStyle>();
+
+        /// <summary>
+        /// Experimental switch: when true, use XDocument-based loader in Init().
+        /// Default is false to preserve legacy behavior.
+        /// </summary>
+        public static bool UseXDocument { get; set; } =
+            string.Equals(Environment.GetEnvironmentVariable("NPOI_XSSF_BUILTIN_TABLESTYLE_USE_XDOCUMENT"), "1", StringComparison.OrdinalIgnoreCase);
+
+        // ---- benchmark/testing helpers (keep internal) ----
+        internal static void ResetForTesting()
+        {
+            styleMap.Clear();
+        }
+
+        internal static void EnsureInitializedForTesting()
+        {
+            Init();
+        }
+
         public static ITableStyle GetStyle(XSSFBuiltinTableStyleEnum style)
         {
             Init();
             return styleMap[style];
         }
+
         public static bool IsBuiltinStyle(ITableStyle style)
         {
-            if(style == null)
+            if (style == null)
                 return false;
-            return Enums.GetNames<XSSFBuiltinTableStyleEnum>().Any(x => x==style.Name);
+            return Enums.GetNames<XSSFBuiltinTableStyleEnum>().Any(x => x == style.Name);
         }
+
         private static void Init()
         {
-            if(styleMap.Count > 0)
+            if (styleMap.Count > 0)
                 return;
-            using(var xmlstream = typeof(XSSFBuiltinTableStyle).Assembly.GetManifestResourceStream(presetTableStylesResourceName))
+
+            if (UseXDocument)
+            {
+                InitViaXDocument();
+            }
+            else
+            {
+                InitViaXmlDocument();
+            }
+        }
+
+        /// <summary>
+        /// Legacy implementation (existing code). Keep as-is as baseline.
+        /// </summary>
+        private static void InitViaXmlDocument()
+        {
+            using (var xmlstream = typeof(XSSFBuiltinTableStyle).Assembly.GetManifestResourceStream(presetTableStylesResourceName))
             {
                 var xmlReader = new XmlTextReader(xmlstream);
                 var xmlDocument = new XmlDocument();
                 xmlDocument.Load(xmlReader);
+
                 var node = xmlDocument.SelectSingleNode("presetTableStyles");
-                foreach(XmlNode child in node.ChildNodes)
+                foreach (XmlNode child in node.ChildNodes)
                 {
                     String styleName = child.Name;
-                    if(!Enum.TryParse<XSSFBuiltinTableStyleEnum>(styleName, out XSSFBuiltinTableStyleEnum builtIn))
+                    if (!Enum.TryParse<XSSFBuiltinTableStyleEnum>(styleName, out XSSFBuiltinTableStyleEnum builtIn))
                     {
                         continue;
                     }
@@ -363,6 +402,62 @@ namespace NPOI.XSSF.UserModel
                 }
             }
         }
+
+        /// <summary>
+        /// Experimental XDocument implementation.
+        /// Produces the same styleSheet XML string, then feeds it into existing StylesTable.ReadFrom(XmlDocument)
+        /// to keep downstream behavior unchanged.
+        /// </summary>
+        private static void InitViaXDocument()
+        {
+            using (var xmlstream = typeof(XSSFBuiltinTableStyle).Assembly.GetManifestResourceStream(presetTableStylesResourceName))
+            {
+                if (xmlstream == null)
+                    throw new InvalidOperationException($"Embedded resource not found: {presetTableStylesResourceName}");
+
+                // Use a safe XmlReader (avoid DTD/entity resolution)
+                var settings = new XmlReaderSettings
+                {
+                    DtdProcessing = DtdProcessing.Ignore,
+                    XmlResolver = null
+                };
+
+                using var reader = XmlReader.Create(xmlstream, settings);
+                var xdoc = XDocument.Load(reader, LoadOptions.None);
+
+                var root = xdoc.Root;
+                if (root == null || root.Name.LocalName != "presetTableStyles")
+                    throw new InvalidOperationException("presetTableStyles root element not found.");
+
+                foreach (var styleElem in root.Elements())
+                {
+                    // In this resource there are no namespaces/prefixes, LocalName is safest anyway
+                    var styleName = styleElem.Name.LocalName;
+
+                    if (!Enum.TryParse<XSSFBuiltinTableStyleEnum>(styleName, out var builtIn))
+                        continue;
+
+                    var dxfsElem = styleElem.Element("dxfs");
+                    var tableStylesElem = styleElem.Element("tableStyles");
+
+                    if (dxfsElem == null || tableStylesElem == null)
+                        continue;
+
+                    StylesTable styles = new StylesTable();
+                    var styleXmlDocument = new XmlDocument();
+
+                    // Build styleSheet XML
+                    var styleXml = StyleXML(dxfsElem, tableStylesElem);
+
+                    styleXmlDocument.LoadXml(styleXml);
+                    styles.ReadFrom(styleXmlDocument);
+
+                    styleMap.Add(builtIn, new XSSFBuiltinTypeStyleStyle(builtIn, styles.GetExplicitTableStyle(styleName)));
+                }
+            }
+        }
+
+        // ---- existing StyleXML(XmlNode, XmlNode) remains unchanged ----
         private static string StyleXML(XmlNode dxfsNode, XmlNode tableStyleNode)
         {
             // built-ins doc uses 1-based dxf indexing, Excel uses 0 based.
@@ -378,6 +473,30 @@ namespace NPOI.XSSF.UserModel
                     .Append("mc:Ignorable=\"x14ac x16r2\">\n");
             sb.Append(dxfsNode.OuterXml);
             sb.Append(tableStyleNode.OuterXml);
+            sb.Append("</styleSheet>");
+            return sb.ToString();
+        }
+
+        // ---- new overload for XDocument path ----
+        private static string StyleXML(XElement dxfsElem, XElement tableStyleElem)
+        {
+            // built-ins doc uses 1-based dxf indexing, Excel uses 0 based.
+            // add a dummy node to adjust properly.
+            // No namespaces in the resource, so "dxf" is fine.
+            dxfsElem.AddFirst(new XElement("dxf"));
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n")
+                    .Append("<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" ")
+                    .Append("xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" ")
+                    .Append("xmlns:x14ac=\"http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac\" ")
+                    .Append("xmlns:x16r2=\"http://schemas.microsoft.com/office/spreadsheetml/2015/02/main\" ")
+                    .Append("mc:Ignorable=\"x14ac x16r2\">\n");
+
+            // OuterXml equivalent (no indentation) for stability/perf
+            sb.Append(dxfsElem.ToString(SaveOptions.DisableFormatting));
+            sb.Append(tableStyleElem.ToString(SaveOptions.DisableFormatting));
+
             sb.Append("</styleSheet>");
             return sb.ToString();
         }
