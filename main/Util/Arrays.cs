@@ -44,17 +44,11 @@ namespace NPOI.Util
         /// <param name="defaultValue">The default value.</param>
         public static void Fill(byte[] array,byte defaultValue)
         {
-            for (int i = 0; i < array.Length; i++)
-            {
-                array[i] = defaultValue;
-            }
+            new System.Span<byte>(array).Fill(defaultValue);
         }
         public static void Fill(char[] array, char defaultValue)
         {
-            for (int i = 0; i < array.Length; i++)
-            {
-                array[i] = defaultValue;
-            }
+            new System.Span<char>(array).Fill(defaultValue);
         }
         public static void Fill<T>(T[] array, T defaultValue)
         {
@@ -80,14 +74,12 @@ namespace NPOI.Util
         public static void Fill(byte[] a, int fromIndex, int toIndex, byte val)
         {
             RangeCheck(a.Length, fromIndex, toIndex);
-            for (int i = fromIndex; i < toIndex; i++)
-                a[i] = val;
+            new System.Span<byte>(a, fromIndex, toIndex - fromIndex).Fill(val);
         }
         public static void Fill(char[] a, int fromIndex, int toIndex, char val)
         {
             RangeCheck(a.Length, fromIndex, toIndex);
-            for (int i = fromIndex; i < toIndex; i++)
-                a[i] = val;
+            new System.Span<char>(a, fromIndex, toIndex - fromIndex).Fill(val);
         }
         /// <summary>
         /// Checks that {@code fromIndex} and {@code toIndex} are in
@@ -179,6 +171,17 @@ namespace NPOI.Util
                     return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// Returns true if the two byte arrays have identical contents.
+        /// Uses <see cref="System.MemoryExtensions.SequenceEqual{T}"/> for an efficient comparison.
+        /// </summary>
+        public static bool Equals(byte[] a, byte[] b)
+        {
+            if (a == b) return true;
+            if (a == null || b == null) return false;
+            return ((System.ReadOnlySpan<byte>)a).SequenceEqual(b);
         }
         /**
          * Returns <c>true</c> if the two specified arrays of Objects are
