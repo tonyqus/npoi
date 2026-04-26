@@ -29,6 +29,7 @@
  * ==============================================================*/
 
 using System;
+using System.Buffers.Binary;
 using System.IO;
 
 namespace NPOI.Util
@@ -60,10 +61,8 @@ namespace NPOI.Util
         /// <returns>the short (16-bit) value</returns>
         public static short GetShort(byte[] data, int offset)
         {
-            int b0 = data[offset] & 0xFF;
-            int b1 = data[offset + 1] & 0xFF;
-            return (short)((b1 << 8) + (b0 << 0));
-            //return (short)GetNumber(data, offset, LittleEndianConsts.SHORT_SIZE);
+            _ = data[offset + SHORT_SIZE - 1];
+            return BinaryPrimitives.ReadInt16LittleEndian(data.AsSpan(offset));
         }
 
         /// <summary>
@@ -74,15 +73,8 @@ namespace NPOI.Util
         /// <returns>the unsigned short (16-bit) value in an integer</returns>
         public static int GetUShort(byte[] data, int offset)
         {
-            //short num = (short)GetNumber(data, offset, LittleEndianConsts.SHORT_SIZE);
-            //if (num < 0)
-            //{
-            //    return (ushort)(0x10000 + num);
-            //}
-            //return (ushort)num;
-            int b0 = data[offset] & 0xFF;
-            int b1 = data[offset + 1] & 0xFF;
-            return (b1 << 8) + (b0 << 0);
+            _ = data[offset + SHORT_SIZE - 1];
+            return BinaryPrimitives.ReadUInt16LittleEndian(data.AsSpan(offset));
         }
 
         /// <summary>
@@ -113,13 +105,8 @@ namespace NPOI.Util
         /// <returns>the int (32-bit) value</returns>
         public static int GetInt(byte[] data, int offset)
         {
-            //return (int)GetNumber(data, offset, LittleEndianConsts.INT_SIZE);
-            int i = offset;
-            int b0 = data[i++] & 0xFF;
-            int b1 = data[i++] & 0xFF;
-            int b2 = data[i++] & 0xFF;
-            int b3 = data[i++] & 0xFF;
-            return (b3 << 24) + (b2 << 16) + (b1 << 8) + (b0 << 0);
+            _ = data[offset + INT_SIZE - 1];
+            return BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(offset));
         }
 
         /// <summary>
@@ -168,15 +155,8 @@ namespace NPOI.Util
         /// <returns>the long (64-bit) value</returns>
         public static long GetLong(byte[] data, int offset)
         {
-            //return GetNumber(data, offset, LittleEndianConsts.LONG_SIZE);
-            long result = 0;
-
-            for (int j = offset + LONG_SIZE - 1; j >= offset; j--)
-            {
-                result <<= 8;
-                result |= 0xffL & data[j];
-            }
-            return result;
+            _ = data[offset + LONG_SIZE - 1];
+            return BinaryPrimitives.ReadInt64LittleEndian(data.AsSpan(offset));
         }
 
         /// <summary>
@@ -200,10 +180,8 @@ namespace NPOI.Util
         /// <param name="value">The value.</param>
         public static void PutShort(byte[] data, int offset, short value)
         {
-            int i = offset;
-            data[i++] = (byte)((value >> 0) & 0xFF);
-            data[i++] = (byte)((value >> 8) & 0xFF);
-            //PutNumber(data, offset, Convert.ToInt64(value), LittleEndianConsts.SHORT_SIZE);
+            _ = data[offset + SHORT_SIZE - 1];
+            BinaryPrimitives.WriteInt16LittleEndian(data.AsSpan(offset), value);
         }
 
         /// <summary>
@@ -230,10 +208,8 @@ namespace NPOI.Util
         /// <param name="value">The value.</param>
         public static void PutUShort(byte[] data, int offset, int value)
         {
-            //PutNumber(data, offset, Convert.ToInt64(value), LittleEndianConsts.SHORT_SIZE);
-            int i = offset;
-            data[i++] = (byte)((value >> 0) & 0xFF);
-            data[i++] = (byte)((value >> 8) & 0xFF);
+            _ = data[offset + SHORT_SIZE - 1];
+            BinaryPrimitives.WriteUInt16LittleEndian(data.AsSpan(offset), (ushort)value);
         }
 
         /**
@@ -260,11 +236,8 @@ namespace NPOI.Util
         /// <param name="value">the int (32-bit) value</param>
         public static void PutInt(byte[] data, int offset, int value)
         {
-            int i = offset;
-            data[i++] = (byte)((value >> 0) & 0xFF);
-            data[i++] = (byte)((value >> 8) & 0xFF);
-            data[i++] = (byte)((value >> 16) & 0xFF);
-            data[i++] = (byte)((value >> 24) & 0xFF);
+            _ = data[offset + INT_SIZE - 1];
+            BinaryPrimitives.WriteInt32LittleEndian(data.AsSpan(offset), value);
         }
 
         /// <summary>
@@ -288,15 +261,8 @@ namespace NPOI.Util
         /// <param name="value">the long (64-bit) value</param>
         public static void PutLong(byte[] data, int offset, long value)
         {
-            //PutNumber(data, offset, value, LittleEndianConsts.LONG_SIZE);
-            int limit = LONG_SIZE + offset;
-            long v = value;
-
-            for (int j = offset; j < limit; j++)
-            {
-                data[j] = (byte)(v & 0xFF);
-                v >>= 8;
-            }
+            _ = data[offset + LONG_SIZE - 1];
+            BinaryPrimitives.WriteInt64LittleEndian(data.AsSpan(offset), value);
         }
 
 
@@ -558,11 +524,8 @@ namespace NPOI.Util
         }
         public static void PutUInt(byte[] data, int offset, long value)
         {
-            int i = offset;
-            data[i++] = (byte)((value >> 0) & 0xFF);
-            data[i++] = (byte)((value >> 8) & 0xFF);
-            data[i++] = (byte)((value >> 16) & 0xFF);
-            data[i++] = (byte)((value >> 24) & 0xFF);
+            _ = data[offset + INT_SIZE - 1];
+            BinaryPrimitives.WriteUInt32LittleEndian(data.AsSpan(offset), (uint)value);
         }
         /// <summary>
         /// Puts the long.

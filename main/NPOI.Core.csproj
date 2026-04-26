@@ -39,6 +39,10 @@
     <Reference Include="System.Configuration" />
   </ItemGroup>
 
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' Or '$(TargetFramework)' == 'netstandard2.0' ">
+    <PackageReference Include="System.Memory" />
+  </ItemGroup>
+
   <ItemGroup>
     <Folder Include="Util\Optional\" />
   </ItemGroup>
