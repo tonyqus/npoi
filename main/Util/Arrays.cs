@@ -179,8 +179,8 @@ namespace NPOI.Util
         /// </summary>
         public static bool Equals(byte[] a, byte[] b)
         {
-            if (a == b) return true;
             if (a == null || b == null) return false;
+            if (a == b) return true;
             return ((System.ReadOnlySpan<byte>)a).SequenceEqual(b);
         }
         /**
